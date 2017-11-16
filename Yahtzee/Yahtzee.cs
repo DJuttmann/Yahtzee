@@ -37,6 +37,23 @@ namespace Yahtzee
       Yahtzee = 12
     }
 
+    public static string [] CategoryNames = new []
+    {
+      "Chance",
+      "Aces",
+      "Twos",
+      "Threes",
+      "Fours",
+      "Fives",
+      "Sixes",
+      "Three of a Kind",
+      "Four of a Kind",
+      "Full House",
+      "Small Straight",
+      "Large Straight",
+      "Yahtzee",
+    };
+
     public const int ScoreFullHouse = 25;
     public const int ScoreSmallStraight = 30;
     public const int ScoreLargeStraight = 40;

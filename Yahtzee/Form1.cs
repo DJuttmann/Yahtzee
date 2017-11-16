@@ -34,8 +34,11 @@ namespace Yahtzee
       Player1Categories [0].Size = 25;
       Player1Categories [0].AddToForm (this);
       Player1Categories [0].SetDie (2, DiceImages [4]);
+      Player1Categories [0].Left = 400;
+      Player1Categories [0].Top = 70;
     }
   }
+
 
 
   public class DiceContainer
@@ -44,6 +47,17 @@ namespace Yahtzee
     public PictureBox [] DiceImages;
     private int size = 50;
     public int Size {get {return size;} set {SetSize (value);}}
+
+    public int Top
+    {
+      get {return Box.Top;}
+      set {Box.Top = value;}
+    }
+    public int Left
+    {
+      get {return Box.Left;}
+      set {Box.Left = value;}
+    }
 
 
     private void SetSize (int size)
