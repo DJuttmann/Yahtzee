@@ -96,7 +96,7 @@ namespace Yahtzee
 
 
     // Constructor.
-    DiceSet ()
+    public DiceSet ()
     {
       Dice = new int [5];
     }
@@ -317,6 +317,7 @@ namespace Yahtzee
       Round = Rules.GameNotActive; // set to a value indicating game has not started;
       CategoriesPlayer1 = new bool [Rules.CategoryCount];
       CategoriesPlayer2 = new bool [Rules.CategoryCount];
+      Dice = new DiceSet ();
     }
 
 
@@ -350,7 +351,7 @@ namespace Yahtzee
     // Reroll selected dice listed int array.
     public bool Reroll (int [] selectedDice)
     {
-      if (RollsUsed >= Rules.MaxRolls && Round < Rules.TotalRounds)
+      if (RollsUsed >= Rules.MaxRolls || Round < Rules.TotalRounds)
         return false;
       foreach (int index in selectedDice)
         Dice.RollDie (index);
