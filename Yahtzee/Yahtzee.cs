@@ -77,7 +77,7 @@ namespace Yahtzee
     // Returns the roll of a six sided die.
     public static int D6 ()
     {
-      return Generator.Next (6);
+      return Generator.Next (6) + 1;
     }
   }
 
@@ -158,7 +158,7 @@ namespace Yahtzee
       case Rules.Category.Chance:
         return ScoreChance ();
       default:
-        return 0;
+        return -10;
       }
     }
 
@@ -166,11 +166,11 @@ namespace Yahtzee
     // Compares two int tuples, first by Item1, if equal by Item2.
     private int CompareTuple (Tuple <int, int> x, Tuple <int, int> y)
     {
-      if (x.Item1 < y.Item1)
-        return -1;
       if (x.Item1 > y.Item1)
+        return -1;
+      if (x.Item1 < y.Item1)
         return 1;
-      return x.Item2 - y.Item2;
+      return y.Item2 - x.Item2;
     }
 
 
@@ -181,19 +181,20 @@ namespace Yahtzee
       List <int> sorted = new List <int> (Dice);
 
       sorted.Sort ();
-      int lastValue = Dice [0],
+      int lastValue = sorted [0],
           valueCount = 1;
       for (int i = 1; i < DiceCount; i++)
       {
-        if (Dice [i] == lastValue)
+        if (sorted [i] == lastValue)
           valueCount++;
         else
         {
           counts.Add (new Tuple <int, int> (valueCount, lastValue));
-          lastValue = Dice [i];
+          lastValue = sorted [i];
           valueCount = 1;
         }
       }
+      counts.Add (new Tuple <int, int> (valueCount, lastValue));
       counts.Sort (CompareTuple);
       return counts;
     }
@@ -246,16 +247,16 @@ namespace Yahtzee
     private int ScoreSmallStraight ()
     {
       bool success;
-      List <int> sorted = new List <int> (Dice);
-      sorted.Sort ();
-      for (int startIndex = 1; startIndex <= 2; startIndex++)
+//      List <int> sorted = new List <int> (Dice);
+//      sorted.Sort ();
+      for (int startValue = 1; startValue <= 3; startValue++)
       {
         success = true;
-        for (int i = startIndex; i < DiceCount; i++)
-          if (sorted [i] != sorted [i - 1] + 1)
+        for (int i = 0; i < 4; i++)
+          if (!Dice.Contains (startValue + i))
             success = false;
         if (success)
-          return Rules.ScoreLargeStraight;
+          return Rules.ScoreSmallStraight;
       }
       return 0;
     }
@@ -305,8 +306,8 @@ namespace Yahtzee
     public uint Round {get; private set;} // game rounds are numbered 0-12
     public int ScorePlayer1 {get; private set;}
     public int ScorePlayer2 {get; private set;}
-    public bool [] CategoriesPlayer1; // records used categories for player 1
-    public bool [] CategoriesPlayer2; //                 "                  2
+    public int [] CategoriesPlayer1; // records category scores for player 1
+    public int [] CategoriesPlayer2; // and player 2. Set to -1 if no score submitted yet.
     public Player ActivePlayer {get; private set;}
     public uint RollsUsed {get; private set;} // number of rolls used by active player
 
@@ -315,8 +316,8 @@ namespace Yahtzee
     public YahtzeeGame ()
     {
       Round = Rules.GameNotActive; // set to a value indicating game has not started;
-      CategoriesPlayer1 = new bool [Rules.CategoryCount];
-      CategoriesPlayer2 = new bool [Rules.CategoryCount];
+      CategoriesPlayer1 = new int [Rules.CategoryCount];
+      CategoriesPlayer2 = new int [Rules.CategoryCount];
       Dice = new DiceSet ();
     }
 
@@ -331,16 +332,43 @@ namespace Yahtzee
       RollsUsed = 0;
       for (int i = 0; i < Rules.CategoryCount; i++)
       {
-        CategoriesPlayer1 [i] = false;
-        CategoriesPlayer2 [i] = false;
+        CategoriesPlayer1 [i] = -1;
+        CategoriesPlayer2 [i] = -1;
       }
+    }
+
+
+    // Returns what a player has scored in given category.
+    public int GetPlayerScore (Player player, Rules.Category category)
+    {
+      if (player == Player.Player1)
+        return CategoriesPlayer1 [(int) category];
+      else
+        return CategoriesPlayer2 [(int) category];
+    }
+
+
+    // Returns total score for a player
+//    public int GetPlayerTotalScore (Player player)
+//    {
+//      if (player == Player.Player1)
+//        return ScorePlayer1;
+//      else
+//        return ScorePlayer2;
+//    }
+
+
+    // Evaluate the score of the current dice for given category.
+    public int ScoreDice (Rules.Category category)
+    {
+      return Dice.ScoreDice (category);
     }
 
 
     // Roll all dice as the first roll.
     public bool FirstRoll ()
     {
-      if (RollsUsed != 0 && Round < Rules.TotalRounds)
+      if (RollsUsed != 0 || Round >= Rules.TotalRounds)
         return false;
       Dice.RollAll ();
       RollsUsed = 1;
@@ -351,7 +379,7 @@ namespace Yahtzee
     // Reroll selected dice listed int array.
     public bool Reroll (int [] selectedDice)
     {
-      if (RollsUsed >= Rules.MaxRolls || Round < Rules.TotalRounds)
+      if (RollsUsed >= Rules.MaxRolls || Round >= Rules.TotalRounds)
         return false;
       foreach (int index in selectedDice)
         Dice.RollDie (index);
@@ -362,26 +390,30 @@ namespace Yahtzee
 
     // Add the score of the dice in selected category to active player's total score.
     // Then end the turn.
-    public bool SubmitScore (Rules.Category c)
+    public bool SubmitScore (Rules.Category category)
     {
+      int score = Dice.ScoreDice (category);
       if (RollsUsed > 0 && Round < Rules.TotalRounds)
       {
         if (ActivePlayer == Player.Player1)
         {
-          if (!CategoriesPlayer1 [(int) c])
+          if (CategoriesPlayer1 [(int) category] != -1)
             return false; // cancel if player 1 has already used scoring category
-          ScorePlayer1 += Dice.ScoreDice (c);
+          CategoriesPlayer1 [(int) category] = score;
+          ScorePlayer1 += score;
           ActivePlayer = Player.Player2;
         }
         else
         {
-          if (!CategoriesPlayer2 [(int) c])
+          if (CategoriesPlayer2 [(int) category] != -1)
             return false; // cancel if player 2 has already used scoring category
-          ScorePlayer2 += Dice.ScoreDice (c);
+          CategoriesPlayer2 [(int) category] = score;
+          ScorePlayer2 += score;
           ActivePlayer = Player.Player1;
+          Round++;
         }
+        Dice.Reset ();
         RollsUsed = 0;
-        Round++;
         return true;
       }
       return false;
