@@ -1,6 +1,6 @@
 ﻿namespace Yahtzee
 {
-  partial class Form1
+  partial class FormMainWindow
   {
     /// <summary>
     /// Required designer variable.
@@ -30,13 +30,13 @@
     {
       this.SuspendLayout();
       // 
-      // Form1
+      // FormMainWindow
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(1037, 540);
-      this.Name = "Form1";
-      this.Text = "Form1";
+      this.ClientSize = new System.Drawing.Size(942, 528);
+      this.Name = "FormMainWindow";
+      this.Text = "Yahtzee";
       this.ResumeLayout(false);
 
     }

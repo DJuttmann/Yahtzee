@@ -58,11 +58,13 @@ namespace Yahtzee
     public const int ScoreSmallStraight = 30;
     public const int ScoreLargeStraight = 40;
     public const int ScoreYahtzee = 50;
+    public const int YahtzeeBonus = 100;
 
-    public const int CategoryCount = 13;
-    public const int MaxRolls = 3;
-    public const int TotalRounds = 13;
-    public const int GameNotActive = 100;
+    public const int DiceSides = 6;
+    public const int CategoryCount = 13; // Number of scorable categories.
+    public const int MaxRolls = 3; // Max number of rolls allowed per round.
+    public const int TotalRounds = 13; // Number of rounds per game.
+    public const int GameNotActive = 100; // Round value to indicate game not active.
   }
 
 ﻿//========================================================================================
@@ -77,7 +79,7 @@ namespace Yahtzee
     // Returns the roll of a six sided die.
     public static int D6 ()
     {
-      return Generator.Next (6) + 1;
+      return Generator.Next (Rules.DiceSides) + 1;
     }
   }
 
@@ -87,7 +89,7 @@ namespace Yahtzee
 
   class DiceSet
   {
-    const int DiceCount = 5;
+    public const int DiceCount = 5;
     private int [] Dice;
     public int this [int i]
     {
@@ -216,7 +218,7 @@ namespace Yahtzee
     {
       List <Tuple <int, int>> diceCounts = Counts ();
       if (diceCounts [0].Item1 >= 3) // Check if most common die count is at least 3
-        return 3 * diceCounts [0].Item2;
+        return Dice.Sum ();
       return 0;
     }
 
@@ -226,7 +228,7 @@ namespace Yahtzee
     {
       List <Tuple <int, int>> diceCounts = Counts ();
       if (diceCounts [0].Item1 >= 4) // Check if most common die count >= 4
-        return 4 * diceCounts [0].Item2;
+        return Dice.Sum ();
       return 0;
     }
 
@@ -247,8 +249,6 @@ namespace Yahtzee
     private int ScoreSmallStraight ()
     {
       bool success;
-//      List <int> sorted = new List <int> (Dice);
-//      sorted.Sort ();
       for (int startValue = 1; startValue <= 3; startValue++)
       {
         success = true;
@@ -287,10 +287,7 @@ namespace Yahtzee
     // Score dice set as Chance.
     private int ScoreChance ()
     {
-      int sum = 0;
-      foreach (int n in Dice)
-        sum += n;
-      return sum;
+      return Dice.Sum ();
     }
   }
 
@@ -348,20 +345,36 @@ namespace Yahtzee
     }
 
 
-    // Returns total score for a player
-//    public int GetPlayerTotalScore (Player player)
-//    {
-//      if (player == Player.Player1)
-//        return ScorePlayer1;
-//      else
-//        return ScorePlayer2;
-//    }
-
-
-    // Evaluate the score of the current dice for given category.
+    // Evaluate the score + potential bonus of the current dice for given category.
     public int ScoreDice (Rules.Category category)
     {
-      return Dice.ScoreDice (category);
+      int [] playerScores = (ActivePlayer == Player.Player1) ?
+                            CategoriesPlayer1 : CategoriesPlayer2;
+      int score = Dice.ScoreDice (category);
+      int bonus = 0;
+      if (Dice.ScoreDice (Rules.Category.Yahtzee) > 0 &&   // if player rolled a yahtzee 
+          playerScores [(int) Rules.Category.Yahtzee] > 0) // and already scored one,
+      {                                                    // add bonus
+        bonus = Rules.YahtzeeBonus;
+        int diceValue = Dice [0];
+        if (playerScores [diceValue] != -1) { // if upper section for dice value used
+          switch (category) // allow the yahtzee as joker for some lower section categories
+          {
+          case Rules.Category.FullHouse:
+            score = Rules.ScoreFullHouse;
+            break;
+          case Rules.Category.SmallStraight:
+            score = Rules.ScoreSmallStraight;
+            break;
+          case Rules.Category.LargeStraight:
+            score = Rules.ScoreLargeStraight;
+            break;
+          default:
+            break;
+          }
+        }
+      }
+      return score + bonus;
     }
 
 
@@ -392,7 +405,7 @@ namespace Yahtzee
     // Then end the turn.
     public bool SubmitScore (Rules.Category category)
     {
-      int score = Dice.ScoreDice (category);
+      int score = ScoreDice (category);
       if (RollsUsed > 0 && Round < Rules.TotalRounds)
       {
         if (ActivePlayer == Player.Player1)
@@ -434,7 +447,7 @@ namespace Yahtzee
     {
       Application.EnableVisualStyles ();
       Application.SetCompatibleTextRenderingDefault (false);
-      Application.Run (new Form1 ());
+      Application.Run (new FormMainWindow ());
     }
   }
 }

@@ -11,18 +11,18 @@ using System.Windows.Forms;
 
 namespace Yahtzee
 {
-  public partial class Form1: Form
+  public partial class FormMainWindow: Form
   {
     private YahtzeeGame Game = new YahtzeeGame ();
-    private Label [] CategoryNames = new Label [13];
-    private Label [] Player1Scores = new Label [13];
-    private Label [] Player2Scores = new Label [13];
-    private DiceContainer [] Player1Categories = new DiceContainer [13];
-    private DiceContainer [] Player2Categories = new DiceContainer [13];
-    private Button [] SelectCategoryButtons = new Button [13];
-    public Image [] DiceImages = new Image [7];
-    public Image [] DiceImagesSelected = new Image [7];
-    private bool [] SelectedDice = new bool [5];
+    private Label [] CategoryNames = new Label [Rules.CategoryCount];
+    private Label [] Player1Scores = new Label [Rules.CategoryCount];
+    private Label [] Player2Scores = new Label [Rules.CategoryCount];
+    private DiceContainer [] Player1Categories = new DiceContainer [Rules.CategoryCount];
+    private DiceContainer [] Player2Categories = new DiceContainer [Rules.CategoryCount];
+    private Button [] SelectCategoryButtons = new Button [Rules.CategoryCount];
+    private Image [] DiceImages = new Image [Rules.DiceSides + 1];
+    private Image [] DiceImagesSelected = new Image [Rules.DiceSides + 1];
+    private bool [] SelectedDice = new bool [DiceSet.DiceCount];
 
     private Label LabelPlayer1 = new Label ();
     private Label LabelPlayer2 = new Label ();
@@ -37,12 +37,13 @@ namespace Yahtzee
 //========================================================================================
 // Initialization
 
-    public Form1 ()
+    public FormMainWindow ()
     {
       InitializeComponent ();
 
+      if (!LoadDiceImages ())
+        return;
       AddMainControls ();
-      LoadDiceImages ();
       AddButtons ();
       AddDiceResults ();
       AddLabels ();
@@ -50,29 +51,42 @@ namespace Yahtzee
     }
 
 
-    private void LoadDiceImages ()
+    private bool LoadDiceImages ()
     {
-      for (int i = 1; i <= 6; i++)
+      try
       {
-        DiceImages [i] = Image.FromFile ("Die" + i.ToString () + ".png");
-        DiceImagesSelected [i] = Image.FromFile ("Die" + i.ToString () + "Select.png");
+        for (int i = 1; i <= 6; i++)
+        {
+          DiceImages [i] = Image.FromFile ("Data/Die" + i.ToString () + ".png");
+          DiceImagesSelected [i] = Image.FromFile ("Data/Die" + i.ToString () +
+                                                   "Select.png");
+        }
       }
+      catch (System.IO.FileNotFoundException ex)
+      {
+        MessageBox.Show (@"
+Error: image file not found.
+Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
+          );
+        return false;
+      }
+      catch (Exception ex)
+      {
+        MessageBox.Show ("Error: Could not open files");
+        return false;
+      }
+      return true;
     }
 
 
     private void AddMainControls ()
     {
-      LabelStatus = new Label ();
-      LabelStatus.Left = 25;
-      LabelStatus.Top = 50;
-      LabelStatus.Width = 200;
-      LabelStatus.Text = "Player 1";
-
       CurrentDice = new DiceContainer ();
       CurrentDice.Left = 25;
-      CurrentDice.Top = 100;
+      CurrentDice.Top = 110;
       CurrentDice.Size = 50;
       CurrentDice.AddClickHandler (SelectDieClick);
+      CurrentDice.AddToForm (this);
 
       Roll.Left = 25;
       Roll.Top = 180;
@@ -80,24 +94,29 @@ namespace Yahtzee
       Roll.Height = 30;
       Roll.Text = "Roll";
       Roll.Click += RollClick;
+      Controls.Add (Roll);
 
       Restart.Left = 25;
-      Restart.Top = 380;
+      Restart.Top = 370;
       Restart.Width = 100;
       Restart.Height = 30;
       Restart.Text = "Restart";
       Restart.Click += RestartClick;
-
-      Controls.Add (LabelStatus);
-      CurrentDice.AddToForm (this);
-      Controls.Add (Roll);
       Controls.Add (Restart);
+
+      LabelStatus = new Label ();
+      LabelStatus.Left = 25;
+      LabelStatus.Top = 50;
+      LabelStatus.Width = 200;
+      LabelStatus.Height = 60;
+      LabelStatus.Text = "Player 1";
+      Controls.Add (LabelStatus);
     }
 
 
     private void AddDiceResults ()
     {
-      for (int i = 0; i < 13; i++)
+      for (int i = 0; i < Rules.CategoryCount; i++)
       {
         Player1Categories [i] = new DiceContainer ();
         Player1Categories [i].Left = 400;
@@ -116,7 +135,7 @@ namespace Yahtzee
 
     private void AddButtons ()
     {
-      for (int i = 0; i < 13; i++)
+      for (int i = 0; i < Rules.CategoryCount; i++)
       {
         SelectCategoryButtons [i] = new Button ();
         SelectCategoryButtons [i].Top = i * 25 + 45;
@@ -130,25 +149,24 @@ namespace Yahtzee
 
     private void AddLabels ()
     {
-      for (int i = 0; i < 13; i++)
+      for (int i = 0; i < Rules.CategoryCount; i++)
       {
         CategoryNames [i] = new Label ();
         CategoryNames [i].Left = 300;
         CategoryNames [i].Top = i * 25 + 50;
         CategoryNames [i].Text = Rules.CategoryNames [i];
+        Controls.Add (CategoryNames [i]);
 
         Player1Scores [i] = new Label ();
         Player1Scores [i].Left = 505;
         Player1Scores [i].Top = i * 25 + 50;
         Player1Scores [i].Text = "0";
+        Controls.Add (Player1Scores [i]);
 
         Player2Scores [i] = new Label ();
         Player2Scores [i].Left = 655;
         Player2Scores [i].Top = i * 25 + 50;
         Player2Scores [i].Text = "0";
-
-        Controls.Add (CategoryNames [i]);
-        Controls.Add (Player1Scores [i]);
         Controls.Add (Player2Scores [i]);
       }
       LabelPlayer1.Left = 400;
@@ -178,12 +196,12 @@ namespace Yahtzee
     }
 
 //========================================================================================
-// Updating
+// Updating UI
 
     // Update status text.
     private void UpdateStatus ()
     {
-      if (Game.Round >= 13)
+      if (Game.Round >= Rules.TotalRounds)
       {
         string text = "Game over. ";
         if (Game.ScorePlayer1 > Game.ScorePlayer2)
@@ -194,11 +212,11 @@ namespace Yahtzee
           LabelStatus.Text = text + "It's a draw!";
       }
       else
-        LabelStatus.Text = "Round " + Game.Round.ToString () +
-                           " - Player " + 
+        LabelStatus.Text = "Round: " + (Game.Round + 1).ToString () +
+                           "\nPlayer: " +
                            ((Game.ActivePlayer == YahtzeeGame.Player.Player1) ?
                            "1" : "2") +
-                           " - Rolls used: " + Game.RollsUsed.ToString ();
+                           "\nRolls used: " + Game.RollsUsed.ToString ();
     }
 
 
@@ -210,7 +228,7 @@ namespace Yahtzee
         x = 400;
       else
         x = 550;
-      for (int i = 0; i < 13; i++)
+      for (int i = 0; i < Rules.CategoryCount; i++)
       {
         SelectCategoryButtons [i].Left = x;
         SelectCategoryButtons [i].Visible = Game.GetPlayerScore (Game.ActivePlayer,
@@ -222,7 +240,7 @@ namespace Yahtzee
     // Enable submit buttons.
     private void EnableButtons ()
     {
-      for (int i = 0; i < 13; i++)
+      for (int i = 0; i < Rules.CategoryCount; i++)
         SelectCategoryButtons [i].Enabled = true;
     }
 
@@ -230,12 +248,12 @@ namespace Yahtzee
     // Disable submit buttons.
     private void DisableButtons ()
     {
-      for (int i = 0; i < 13; i++)
+      for (int i = 0; i < Rules.CategoryCount; i++)
         SelectCategoryButtons [i].Enabled = false;
     }
 
 
-    // Convert score to strin, or "-" when unscored (-1).
+    // Convert score to string, or "-" when unscored (-1).
     private string ScoreToString (int score)
     {
       if (score == -1)
@@ -247,7 +265,7 @@ namespace Yahtzee
     // Update the score display.
     private void UpdateScores ()
     {
-      for (int i = 0; i < 13; i++)
+      for (int i = 0; i < Rules.CategoryCount; i++)
       {
         Player1Scores [i].Text = ScoreToString (
           Game.GetPlayerScore (YahtzeeGame.Player.Player1, (Rules.Category) i));
@@ -267,7 +285,7 @@ namespace Yahtzee
       Label [] scoreList = (Game.ActivePlayer == YahtzeeGame.Player.Player1) ?
                            Player1Scores : Player2Scores;
       int score;
-      for (int i = 0; i < 13; i++)
+      for (int i = 0; i < Rules.CategoryCount; i++)
       {
         score = Game.ScoreDice ((Rules.Category) i);
         if (Game.GetPlayerScore (Game.ActivePlayer, (Rules.Category) i) == -1)
@@ -282,7 +300,7 @@ namespace Yahtzee
     // Update Current Dice
     private void UpdateCurrentDice ()
     {
-      for (int i = 0; i < 5; i++)
+      for (int i = 0; i < DiceSet.DiceCount; i++)
       {
         if (SelectedDice [i])
           CurrentDice.SetDie (i, DiceImagesSelected [Game.Dice [i]]);
@@ -296,7 +314,7 @@ namespace Yahtzee
     private int [] GetSelectedDice ()
     {
       List <int> select = new List <int> ();
-      for (int i = 0; i < 5; i++)
+      for (int i = 0; i < DiceSet.DiceCount; i++)
         if (SelectedDice [i])
           select.Add (i);
       return select.ToArray ();
@@ -310,8 +328,8 @@ namespace Yahtzee
       Rules.Category category = (Rules.Category) index;
       Label scoreLabel;
       DiceContainer container;
-      int [] finalDice = new int [5];
-      for (int i = 0; i < 5; i++)
+      int [] finalDice = new int [DiceSet.DiceCount];
+      for (int i = 0; i < DiceSet.DiceCount; i++)
         finalDice [i] = Game.Dice [i];
       if (Game.SubmitScore (category))
       {
@@ -326,14 +344,17 @@ namespace Yahtzee
           scoreLabel = Player2Scores [index];
           container = Player2Categories [index];
         }
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < DiceSet.DiceCount; i++)
           container.SetDie (i, DiceImages [finalDice [i]]);
         UpdateScores ();
         DisableButtons ();
         SetButtonPositions ();
         CurrentDice.ClearDice ();
         UpdateStatus ();
-        Roll.Enabled = true;
+        if (Game.Round < Rules.TotalRounds)
+          Roll.Enabled = true;
+        else
+          Roll.Enabled = false;
       }
     }
 
@@ -341,7 +362,7 @@ namespace Yahtzee
     // Clear the displayed results for all categories.
     private void ClearCategories ()
     {
-      for (int i = 0; i < 13; i++)
+      for (int i = 0; i < Rules.CategoryCount; i++)
       {
         Player1Categories [i].ClearDice ();
         Player2Categories [i].ClearDice ();
@@ -362,13 +383,27 @@ namespace Yahtzee
       Roll.Enabled = true;
     }
 
+
+    // Asks user if they want to quit game. Returns false to continue game.
+    private bool GameQuitConfirmation ()
+    {
+      if ((Game.Round == 0 && Game.ActivePlayer == YahtzeeGame.Player.Player1 &&
+           Game.RollsUsed == 0) || Game.Round == Rules.TotalRounds)
+        return true;
+      FormGameQuitWarning warning = new FormGameQuitWarning ();
+      DialogResult result = warning.ShowDialog (this);
+      if (result == DialogResult.OK)
+        return true;
+      return false;
+    }
+
 //========================================================================================
 // Event Handlers
 
     // Handler for score submit buttons.
     private void SelectCategoryClick (object sender, EventArgs e)
     {
-      for (int i = 0; i < 13; i++)
+      for (int i = 0; i < Rules.CategoryCount; i++)
       {
         if (SelectCategoryButtons [i] == sender)
         {
@@ -389,13 +424,13 @@ namespace Yahtzee
         success = Game.Reroll (GetSelectedDice ());
       if (success)
       {
-        for (int i = 0; i < 5; i++)
+        for (int i = 0; i < DiceSet.DiceCount; i++)
           SelectedDice [i] = false;
         UpdateCurrentDice ();
         ShowPotentialScores ();
         EnableButtons ();
         UpdateStatus ();
-        if (Game.RollsUsed == 3)
+        if (Game.RollsUsed == Rules.MaxRolls)
           Roll.Enabled = false;
       }
     }
@@ -405,7 +440,7 @@ namespace Yahtzee
     private void SelectDieClick (object sender, EventArgs e)
     {
       int index = CurrentDice.GetImageIndex ((PictureBox) sender);
-      if (index == -1)
+      if (index == -1 || Game.RollsUsed >= Rules.MaxRolls)
         return;
       SelectedDice [index] = !SelectedDice [index];
       if (SelectedDice [index])
@@ -418,40 +453,51 @@ namespace Yahtzee
     // Handler for restarting the game.
     private void RestartClick (object sender, EventArgs e)
     {
-      NewGame ();
+      if (GameQuitConfirmation ())
+        NewGame ();
+    }
+
+
+    // Program exit event handler. Gives warning if game still ongoing.
+    protected override void OnFormClosing (FormClosingEventArgs e)
+    {
+      base.OnFormClosing (e);
+      if (!GameQuitConfirmation ())
+        e.Cancel = true;
     }
   }
 
-﻿//========================================================================================
-// Class DiceContainer
-﻿//========================================================================================
+  //========================================================================================
+  // Class DiceContainer
+  //========================================================================================
 
   public class DiceContainer
   {
-    private Panel Box;
-    private PictureBox [] DicePictureBoxes;
-    private int size = 50;
+    private Panel Box; // container for dice images
+    private PictureBox [] DicePictureBoxes; // picture boxes for dice images
+    private int size = 50; // Height of the container
     public int Size {get {return size;} set {SetSize (value);}}
 
-    public int Top
+    public int Top // distance from top of parent container
     {
       get {return Box.Top;}
       set {Box.Top = value;}
     }
-    public int Left
+    public int Left // distance from left side of parent container
     {
       get {return Box.Left;}
       set {Box.Left = value;}
     }
 
 
+    // Constructor.
     public DiceContainer ()
     {
       Box = new Panel ();
       Box.Width = 300;
       Box.Height = 50;
-      DicePictureBoxes = new PictureBox [5];
-      for (int i = 0; i < 5; i++)
+      DicePictureBoxes = new PictureBox [DiceSet.DiceCount];
+      for (int i = 0; i < DiceSet.DiceCount; i++)
       {
         DicePictureBoxes [i] = new PictureBox ();
         DicePictureBoxes [i].SizeMode = PictureBoxSizeMode.Zoom;
@@ -465,11 +511,12 @@ namespace Yahtzee
     }
 
 
+    // Resize the container to height = size and width = size * DiceSet.DiceCount.
     private void SetSize (int size)
     {
       this.size = size;
       Box.Height = size;
-      Box.Width = Size * 5;
+      Box.Width = Size * DiceSet.DiceCount;
       int i = 0;
       foreach (PictureBox picture in Box.Controls)
       {
@@ -482,39 +529,44 @@ namespace Yahtzee
     }
 
 
+    // Returns index of a PictureBox in the container, or -1 if it's not in container.
     public int GetImageIndex (PictureBox img)
     {
-      for (int i = 0; i < 5; i++)
+      for (int i = 0; i < DiceSet.DiceCount; i++)
         if (DicePictureBoxes [i] == img)
           return i;
       return -1;
     }
 
 
+    // Set the image for one of the dice.
     public void SetDie (int index, Image img)
     {
-      if (index >= 0 && index < 5)
+      if (index >= 0 && index < DiceSet.DiceCount)
       {
         ((PictureBox) Box.Controls [index]).Image = img;
       }
     }
 
 
+    // Remove the images for all dice.
     public void ClearDice ()
     {
-      for (int i = 0; i < 5; i++)
+      for (int i = 0; i < DiceSet.DiceCount; i++)
         ((PictureBox) Box.Controls [i]).Image = null;
     }
 
 
+    // Add an event handler for all dice clicks.
     public void AddClickHandler (System.EventHandler handler)
     {
-      for (int i = 0; i < 5; i++)
+      for (int i = 0; i < DiceSet.DiceCount; i++)
         DicePictureBoxes [i].Click += handler;
     }
 
 
-    public void AddToForm (Form1 parentForm)
+    // Add the container to a Main window form.
+    public void AddToForm (FormMainWindow parentForm)
     {
       parentForm.Controls.Add (Box);
     }
