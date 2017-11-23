@@ -34,6 +34,8 @@ namespace Yahtzee
     private Button Roll = new Button ();
     private Button Restart = new Button ();
 
+    private Button HighScores = new Button ();
+
 //========================================================================================
 // Initialization
 
@@ -47,7 +49,6 @@ namespace Yahtzee
       AddButtons ();
       AddDiceResults ();
       AddLabels ();
-      NewGame ();
     }
 
 
@@ -94,15 +95,24 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
       Roll.Height = 30;
       Roll.Text = "Roll";
       Roll.Click += RollClick;
+      Roll.Enabled = false;
       Controls.Add (Roll);
 
       Restart.Left = 25;
       Restart.Top = 370;
       Restart.Width = 100;
       Restart.Height = 30;
-      Restart.Text = "Restart";
+      Restart.Text = "New Game";
       Restart.Click += RestartClick;
       Controls.Add (Restart);
+
+      HighScores.Left = 150;
+      HighScores.Top = 370;
+      HighScores.Width = 100;
+      HighScores.Height = 30;
+      HighScores.Text = "High Scores";
+      HighScores.Click += HighScoresClick;
+      Controls.Add (HighScores);
 
       LabelStatus = new Label ();
       LabelStatus.Left = 25;
@@ -144,6 +154,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
         SelectCategoryButtons [i].Click += new System.EventHandler (SelectCategoryClick);
         Controls.Add (SelectCategoryButtons [i]);
       }
+      SetButtonPositions ();
     }
 
 
@@ -373,6 +384,11 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
     // Start a new game.
     private void NewGame ()
     {
+      FormInputPlayerNames inputNames = new FormInputPlayerNames ();
+      if (inputNames.ShowDialog (this) != DialogResult.OK)
+        return;
+      LabelPlayer1.Text = FormInputPlayerNames.Player1Name;
+      LabelPlayer2.Text = FormInputPlayerNames.Player2Name;
       Game.NewGame ();
       UpdateStatus ();
       DisableButtons ();
@@ -388,7 +404,8 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
     private bool GameQuitConfirmation ()
     {
       if ((Game.Round == 0 && Game.ActivePlayer == YahtzeeGame.Player.Player1 &&
-           Game.RollsUsed == 0) || Game.Round == Rules.TotalRounds)
+           Game.RollsUsed == 0) || Game.Round == Rules.TotalRounds || 
+           Game.Round == Rules.GameNotActive)
         return true;
       FormGameQuitWarning warning = new FormGameQuitWarning ();
       DialogResult result = warning.ShowDialog (this);
@@ -464,6 +481,16 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
       base.OnFormClosing (e);
       if (!GameQuitConfirmation ())
         e.Cancel = true;
+    }
+
+
+    // Handler for button to show high scores.
+    private void HighScoresClick (object sender, EventArgs e)
+    {
+//      HighScoreDatabase.GetTopScores (3);
+      FormHighScores HighScores = new FormHighScores ();
+      HighScores.LoadDatabase ();
+      HighScores.ShowDialog ();
     }
   }
 
