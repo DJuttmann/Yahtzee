@@ -59,6 +59,8 @@ namespace Yahtzee
     public const int ScoreLargeStraight = 40;
     public const int ScoreYahtzee = 50;
     public const int YahtzeeBonus = 100;
+    public const int UpperSectionBonus = 35;
+    public const int UpperSectionThreshold = 63;
 
     public const int DiceSides = 6;
     public const int CategoryCount = 13; // Number of scorable categories.
@@ -303,8 +305,12 @@ namespace Yahtzee
     public uint Round {get; private set;} // game rounds are numbered 0-12
     public int ScorePlayer1 {get; private set;}
     public int ScorePlayer2 {get; private set;}
-    public int [] CategoriesPlayer1; // records category scores for player 1
-    public int [] CategoriesPlayer2; // and player 2. Set to -1 if no score submitted yet.
+    private int [] CategoriesPlayer1; // records category scores for player 1
+    private int [] CategoriesPlayer2; // and player 2. Set to -1 if no score submitted yet.
+    public int BonusPlayer1 {get; private set;} // yahtzee and upper section bonuses
+    public int BonusPlayer2 {get; private set;}
+    public bool UpperBonusPlayer1 {get; private set;} // Records whether upper section
+    public bool UpperBonusPlayer2 {get; private set;} // bonuses have been rewarder yet
     public Player ActivePlayer {get; private set;}
     public uint RollsUsed {get; private set;} // number of rolls used by active player
 
@@ -325,6 +331,10 @@ namespace Yahtzee
       Round = 0;
       ScorePlayer1 = 0;
       ScorePlayer2 = 0;
+      BonusPlayer1 = 0;
+      BonusPlayer2 = 0;
+      UpperBonusPlayer1 = false;
+      UpperBonusPlayer2 = false;
       ActivePlayer = Player.Player1;
       RollsUsed = 0;
       for (int i = 0; i < Rules.CategoryCount; i++)
@@ -345,13 +355,36 @@ namespace Yahtzee
     }
 
 
+    // Return the upper section bonus if player submits score for category; playerScores
+    // is reference to array of player's submitted scores for all categories.
+    public int CalculateUpperSectionBonus (Rules.Category category, int score,
+                                           int [] playerScores)
+    {
+      int cat = (int) category;
+      if ((ActivePlayer == Player.Player1 && UpperBonusPlayer1) ||
+          (ActivePlayer == Player.Player2 && UpperBonusPlayer2))
+        return 0; // return 0 if player has already earned the bonus.
+      if (cat < 1 || cat > 6 || playerScores [(int) category] != -1)
+        return 0; // return 0 if the category is not upper section or was used already.
+
+      int sumUpperSection = score; // add the current score
+      for (int i = 1; i <= Rules.DiceSides; i++)
+        if (playerScores [i] != -1)
+          sumUpperSection += playerScores [i];
+      if (sumUpperSection >= Rules.UpperSectionThreshold)
+        return Rules.UpperSectionBonus;
+      return 0;
+    }
+
+
     // Evaluate the score + potential bonus of the current dice for given category.
-    public int ScoreDice (Rules.Category category)
+    public Tuple <int, int> ScoreDice (Rules.Category category)
     {
       int [] playerScores = (ActivePlayer == Player.Player1) ?
                             CategoriesPlayer1 : CategoriesPlayer2;
       int score = Dice.ScoreDice (category);
       int bonus = 0;
+
       if (Dice.ScoreDice (Rules.Category.Yahtzee) > 0 &&   // if player rolled a yahtzee 
           playerScores [(int) Rules.Category.Yahtzee] > 0) // and already scored one,
       {                                                    // add bonus
@@ -374,7 +407,9 @@ namespace Yahtzee
           }
         }
       }
-      return score + bonus;
+      bonus += CalculateUpperSectionBonus (category, score, playerScores);
+
+      return new Tuple <int, int> (score, bonus);
     }
 
 
@@ -405,23 +440,29 @@ namespace Yahtzee
     // Then end the turn.
     public bool SubmitScore (Rules.Category category)
     {
-      int score = ScoreDice (category);
+      Tuple <int, int> score = ScoreDice (category);
       if (RollsUsed > 0 && Round < Rules.TotalRounds)
       {
         if (ActivePlayer == Player.Player1)
         {
           if (CategoriesPlayer1 [(int) category] != -1)
             return false; // cancel if player 1 has already used scoring category
-          CategoriesPlayer1 [(int) category] = score;
-          ScorePlayer1 += score;
+          if (CalculateUpperSectionBonus (category, score.Item1, CategoriesPlayer1) > 0)
+            UpperBonusPlayer1 = true; // register player 1 has received upper sect. bonus
+          CategoriesPlayer1 [(int) category] = score.Item1;
+          BonusPlayer1 += score.Item2;
+          ScorePlayer1 += score.Item1 + score.Item2;
           ActivePlayer = Player.Player2;
         }
         else
         {
           if (CategoriesPlayer2 [(int) category] != -1)
             return false; // cancel if player 2 has already used scoring category
-          CategoriesPlayer2 [(int) category] = score;
-          ScorePlayer2 += score;
+          if (CalculateUpperSectionBonus (category, score.Item1, CategoriesPlayer2) > 0)
+            UpperBonusPlayer2 = true; // register player 2 has received upper sect. bonus
+          CategoriesPlayer2 [(int) category] = score.Item1;
+          BonusPlayer2 += score.Item2;
+          ScorePlayer2 += score.Item1 + score.Item2;
           ActivePlayer = Player.Player1;
           Round++;
         }

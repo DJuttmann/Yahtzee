@@ -46,15 +46,15 @@ namespace Yahtzee
         tableHighScores.Controls.Add (rank);
         
         Label score = new Label ();
-        rank.Text = newScore.Score.ToString ();
+        score.Text = newScore.Score.ToString ();
         tableHighScores.Controls.Add (score);
 
         Label playerName = new Label ();
-        rank.Text = newScore.PlayerName;
+        playerName.Text = newScore.PlayerName;
         tableHighScores.Controls.Add (playerName);
 
         Label date = new Label ();
-        rank.Text = newScore.Date;
+        date.Text = newScore.Date;
         tableHighScores.Controls.Add (date);
       }
     }

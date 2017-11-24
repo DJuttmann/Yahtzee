@@ -26,6 +26,9 @@ namespace Yahtzee
 
     private Label LabelPlayer1 = new Label ();
     private Label LabelPlayer2 = new Label ();
+    private Label LabelBonus = new Label ();
+    private Label LabelPlayer1Bonus = new Label ();
+    private Label LabelPlayer2Bonus = new Label ();
     private Label LabelTotalScore = new Label ();
     private Label LabelPlayer1Score = new Label ();
     private Label LabelPlayer2Score = new Label ();
@@ -135,7 +138,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
         Player1Categories [i].AddToForm (this);
 
         Player2Categories [i] = new DiceContainer ();
-        Player2Categories [i].Left = 550;
+        Player2Categories [i].Left = 560;
         Player2Categories [i].Top = i * 25 + 47;
         Player2Categories [i].Size = 20;
         Player2Categories [i].AddToForm (this);
@@ -175,7 +178,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
         Controls.Add (Player1Scores [i]);
 
         Player2Scores [i] = new Label ();
-        Player2Scores [i].Left = 655;
+        Player2Scores [i].Left = 665;
         Player2Scores [i].Top = i * 25 + 50;
         Player2Scores [i].Text = "0";
         Controls.Add (Player2Scores [i]);
@@ -185,23 +188,38 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
       LabelPlayer1.Text = "Player 1";
       Controls.Add (LabelPlayer1);
 
-      LabelPlayer2.Left = 550;
+      LabelPlayer2.Left = 560;
       LabelPlayer2.Top = 20;
       LabelPlayer2.Text = "Player 2";
       Controls.Add (LabelPlayer2);
 
+      LabelBonus.Left = 300;
+      LabelBonus.Top = 380;
+      LabelBonus.Text = "Bonus";
+      Controls.Add (LabelBonus);
+
+      LabelPlayer1Bonus.Left = 505;
+      LabelPlayer1Bonus.Top = 380;
+      LabelPlayer1Bonus.Text = "0";
+      Controls.Add (LabelPlayer1Bonus);
+
+      LabelPlayer2Bonus.Left = 665;
+      LabelPlayer2Bonus.Top = 380;
+      LabelPlayer2Bonus.Text = "0";
+      Controls.Add (LabelPlayer2Bonus);
+
       LabelTotalScore.Left = 300;
-      LabelTotalScore.Top = 380;
+      LabelTotalScore.Top = 410;
       LabelTotalScore.Text = "Total Score";
       Controls.Add (LabelTotalScore);
 
       LabelPlayer1Score.Left = 505;
-      LabelPlayer1Score.Top = 380;
+      LabelPlayer1Score.Top = 410;
       LabelPlayer1Score.Text = "0";
       Controls.Add (LabelPlayer1Score);
 
-      LabelPlayer2Score.Left = 655;
-      LabelPlayer2Score.Top = 380;
+      LabelPlayer2Score.Left = 665;
+      LabelPlayer2Score.Top = 410;
       LabelPlayer2Score.Text = "0";
       Controls.Add (LabelPlayer2Score);
     }
@@ -238,7 +256,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
       if (Game.ActivePlayer == YahtzeeGame.Player.Player1)
         x = 400;
       else
-        x = 550;
+        x = 560;
       for (int i = 0; i < Rules.CategoryCount; i++)
       {
         SelectCategoryButtons [i].Left = x;
@@ -285,6 +303,8 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
         Player1Scores [i].ForeColor = Color.Black;
         Player2Scores [i].ForeColor = Color.Black;
       }
+      LabelPlayer1Bonus.Text = Game.BonusPlayer1.ToString ();
+      LabelPlayer2Bonus.Text = Game.BonusPlayer2.ToString ();
       LabelPlayer1Score.Text = Game.ScorePlayer1.ToString ();
       LabelPlayer2Score.Text = Game.ScorePlayer2.ToString ();
     }
@@ -295,13 +315,15 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
     {
       Label [] scoreList = (Game.ActivePlayer == YahtzeeGame.Player.Player1) ?
                            Player1Scores : Player2Scores;
-      int score;
+      Tuple <int, int> score;
+      string bonus;
       for (int i = 0; i < Rules.CategoryCount; i++)
       {
         score = Game.ScoreDice ((Rules.Category) i);
+        bonus = score.Item2 > 0 ? " + " + score.Item2.ToString () : "";
         if (Game.GetPlayerScore (Game.ActivePlayer, (Rules.Category) i) == -1)
         {
-          scoreList [i].Text = score.ToString ();
+          scoreList [i].Text = score.Item1.ToString () + bonus;
           scoreList [i].ForeColor = Color.Red;
         }
       }

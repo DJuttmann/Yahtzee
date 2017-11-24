@@ -34,7 +34,7 @@
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(942, 528);
+      this.ClientSize = new System.Drawing.Size(962, 543);
       this.Name = "FormMainWindow";
       this.Text = "Yahtzee";
       this.ResumeLayout(false);
