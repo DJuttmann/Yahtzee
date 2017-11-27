@@ -17,9 +17,11 @@ namespace Yahtzee
     public string Date;
   }
 
+
 //========================================================================================
 // class DatabaseManager
 //========================================================================================
+
 
   class DatabaseManager
   {
@@ -59,6 +61,7 @@ namespace Yahtzee
 CREATE TABLE highscores (id INTEGER PRIMARY KEY, playername VARCHAR(32), score INT, date VARCHAR(32))";
         command.ExecuteNonQuery ();
 
+        /* // Inset sample database entries, for testing purposes only.
         command.CommandText = @"
 INSERT INTO highscores (playername, score, date) values ('Max Score', 1575, '2000-01-01 00:00')";
         command.ExecuteNonQuery ();
@@ -74,6 +77,7 @@ INSERT INTO highscores (playername, score, date) values ('Average', 254, '2000-0
         command.CommandText = @"
 INSERT INTO highscores (playername, score, date) values ('Random', 350, '2000-01-01 00:00')";
         command.ExecuteNonQuery ();
+        */
 
         Close ();
         return true;
@@ -144,8 +148,8 @@ INSERT INTO highscores (playername, score, date) values ('Random', 350, '2000-01
         SQLiteCommand command = new SQLiteCommand (Connection)
         {
           CommandText = 
-            "INSERT INTO highscores (playername, score, date) values (" +
-            playerName + ", " + score.ToString () + ", " + date + ")"
+            "INSERT INTO highscores (playername, score, date) values ('" +
+            playerName + "', " + score.ToString () + ", '" + date + "')"
         };
         command.ExecuteNonQuery ();
         Close ();

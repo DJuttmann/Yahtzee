@@ -17,7 +17,7 @@ namespace Yahtzee
     private Label LabelPlayerName = new Label ();
     private Label LabelDate = new Label ();
 
-    DatabaseManager HighScoreDatabase = new DatabaseManager ();
+    private DatabaseManager HighScoreDatabase = new DatabaseManager ();
 
 
     public FormHighScores ()
@@ -28,17 +28,25 @@ namespace Yahtzee
       LabelPlayerName.Text = "Player";
       LabelDate.Text = "Date";
 
-      tableHighScores.Controls.Add (LabelPlace);
-      tableHighScores.Controls.Add (LabelScore);
-      tableHighScores.Controls.Add (LabelPlayerName);
-      tableHighScores.Controls.Add (LabelDate);
+    }
+
+
+    public void SubmitScore (string playerName, int score, string date)
+    {
+      HighScoreDatabase.AddScore (playerName, score, date);
     }
 
 
     public void LoadDatabase ()
     {
       List <HighScore> highScores = HighScoreDatabase.GetTopScores (10);
+      tableHighScores.Controls.Clear ();
       tableHighScores.RowCount = (highScores.Count + 1) * 4;
+
+      tableHighScores.Controls.Add (LabelPlace);
+      tableHighScores.Controls.Add (LabelScore);
+      tableHighScores.Controls.Add (LabelPlayerName);
+      tableHighScores.Controls.Add (LabelDate);
       foreach (HighScore newScore in highScores)
       {
         Label rank = new Label ();

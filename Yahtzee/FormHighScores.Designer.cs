@@ -37,7 +37,7 @@
       this.tableHighScores.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 24.83221F));
       this.tableHighScores.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Percent, 75.16779F));
       this.tableHighScores.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 308F));
-      this.tableHighScores.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 163F));
+      this.tableHighScores.ColumnStyles.Add(new System.Windows.Forms.ColumnStyle(System.Windows.Forms.SizeType.Absolute, 164F));
       this.tableHighScores.Location = new System.Drawing.Point(12, 12);
       this.tableHighScores.Name = "tableHighScores";
       this.tableHighScores.RowCount = 11;
@@ -59,8 +59,9 @@
       // 
       this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
       this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-      this.ClientSize = new System.Drawing.Size(646, 415);
+      this.ClientSize = new System.Drawing.Size(646, 251);
       this.Controls.Add(this.tableHighScores);
+      this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
       this.MaximizeBox = false;
       this.MinimizeBox = false;
       this.Name = "FormHighScores";

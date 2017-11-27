@@ -34,14 +34,16 @@ namespace Yahtzee
     private Label LabelPlayer2Score = new Label ();
     private Label LabelStatus;
     private DiceContainer CurrentDice;
-    private Button Roll = new Button ();
-    private Button Restart = new Button ();
+    private Button ButtonRoll = new Button ();
+    private Button ButtonRestart = new Button ();
 
-    private Button HighScores = new Button ();
+    private Button ButtonHighScores = new Button ();
+    FormHighScores HighScores = new FormHighScores ();
 
 //========================================================================================
 // Initialization
 
+    // Constructor.
     public FormMainWindow ()
     {
       InitializeComponent ();
@@ -55,6 +57,7 @@ namespace Yahtzee
     }
 
 
+    // Load dice images from Data folder.
     private bool LoadDiceImages ()
     {
       try
@@ -83,6 +86,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
     }
 
 
+    // Initialize and add main game controls to the main window.
     private void AddMainControls ()
     {
       CurrentDice = new DiceContainer ();
@@ -92,30 +96,30 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
       CurrentDice.AddClickHandler (SelectDieClick);
       CurrentDice.AddToForm (this);
 
-      Roll.Left = 25;
-      Roll.Top = 180;
-      Roll.Width = 100;
-      Roll.Height = 30;
-      Roll.Text = "Roll";
-      Roll.Click += RollClick;
-      Roll.Enabled = false;
-      Controls.Add (Roll);
+      ButtonRoll.Left = 25;
+      ButtonRoll.Top = 180;
+      ButtonRoll.Width = 100;
+      ButtonRoll.Height = 30;
+      ButtonRoll.Text = "Roll";
+      ButtonRoll.Click += RollClick;
+      ButtonRoll.Enabled = false;
+      Controls.Add (ButtonRoll);
 
-      Restart.Left = 25;
-      Restart.Top = 370;
-      Restart.Width = 100;
-      Restart.Height = 30;
-      Restart.Text = "New Game";
-      Restart.Click += RestartClick;
-      Controls.Add (Restart);
+      ButtonRestart.Left = 25;
+      ButtonRestart.Top = 370;
+      ButtonRestart.Width = 100;
+      ButtonRestart.Height = 30;
+      ButtonRestart.Text = "New Game";
+      ButtonRestart.Click += RestartClick;
+      Controls.Add (ButtonRestart);
 
-      HighScores.Left = 150;
-      HighScores.Top = 370;
-      HighScores.Width = 100;
-      HighScores.Height = 30;
-      HighScores.Text = "High Scores";
-      HighScores.Click += HighScoresClick;
-      Controls.Add (HighScores);
+      ButtonHighScores.Left = 150;
+      ButtonHighScores.Top = 370;
+      ButtonHighScores.Width = 100;
+      ButtonHighScores.Height = 30;
+      ButtonHighScores.Text = "High Scores";
+      ButtonHighScores.Click += HighScoresClick;
+      Controls.Add (ButtonHighScores);
 
       LabelStatus = new Label ();
       LabelStatus.Left = 25;
@@ -127,6 +131,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
     }
 
 
+    // Add the the players' dice rolls for all categories to the main window.
     private void AddDiceResults ()
     {
       for (int i = 0; i < Rules.CategoryCount; i++)
@@ -146,6 +151,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
     }
 
 
+    // Add the submit score buttons to the window.
     private void AddButtons ()
     {
       for (int i = 0; i < Rules.CategoryCount; i++)
@@ -161,67 +167,36 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
     }
 
 
+    // Add a text label to the main window.
+    private void AddLabel (Label l, int left, int top, string text)
+    {
+      l.Left = left;
+      l.Top = top;
+      l.Text = text;
+      Controls.Add (l);
+    }
+
+
+    // Add the score sheet text labels to the main window.
     private void AddLabels ()
     {
       for (int i = 0; i < Rules.CategoryCount; i++)
       {
         CategoryNames [i] = new Label ();
-        CategoryNames [i].Left = 300;
-        CategoryNames [i].Top = i * 25 + 50;
-        CategoryNames [i].Text = Rules.CategoryNames [i];
-        Controls.Add (CategoryNames [i]);
-
         Player1Scores [i] = new Label ();
-        Player1Scores [i].Left = 505;
-        Player1Scores [i].Top = i * 25 + 50;
-        Player1Scores [i].Text = "0";
-        Controls.Add (Player1Scores [i]);
-
         Player2Scores [i] = new Label ();
-        Player2Scores [i].Left = 665;
-        Player2Scores [i].Top = i * 25 + 50;
-        Player2Scores [i].Text = "0";
-        Controls.Add (Player2Scores [i]);
+        AddLabel (CategoryNames [i], 300, i * 25 + 50, Rules.CategoryNames [i]);
+        AddLabel (Player1Scores [i], 505, i * 25 + 50, "0");
+        AddLabel (Player2Scores [i], 665, i * 25 + 50, "0");
       }
-      LabelPlayer1.Left = 400;
-      LabelPlayer1.Top = 20;
-      LabelPlayer1.Text = "Player 1";
-      Controls.Add (LabelPlayer1);
-
-      LabelPlayer2.Left = 560;
-      LabelPlayer2.Top = 20;
-      LabelPlayer2.Text = "Player 2";
-      Controls.Add (LabelPlayer2);
-
-      LabelBonus.Left = 300;
-      LabelBonus.Top = 380;
-      LabelBonus.Text = "Bonus";
-      Controls.Add (LabelBonus);
-
-      LabelPlayer1Bonus.Left = 505;
-      LabelPlayer1Bonus.Top = 380;
-      LabelPlayer1Bonus.Text = "0";
-      Controls.Add (LabelPlayer1Bonus);
-
-      LabelPlayer2Bonus.Left = 665;
-      LabelPlayer2Bonus.Top = 380;
-      LabelPlayer2Bonus.Text = "0";
-      Controls.Add (LabelPlayer2Bonus);
-
-      LabelTotalScore.Left = 300;
-      LabelTotalScore.Top = 410;
-      LabelTotalScore.Text = "Total Score";
-      Controls.Add (LabelTotalScore);
-
-      LabelPlayer1Score.Left = 505;
-      LabelPlayer1Score.Top = 410;
-      LabelPlayer1Score.Text = "0";
-      Controls.Add (LabelPlayer1Score);
-
-      LabelPlayer2Score.Left = 665;
-      LabelPlayer2Score.Top = 410;
-      LabelPlayer2Score.Text = "0";
-      Controls.Add (LabelPlayer2Score);
+      AddLabel (LabelPlayer1, 400, 20, "Player 1");
+      AddLabel (LabelPlayer2, 560, 20, "Player 2");
+      AddLabel (LabelBonus, 300, 380, "Bonus");
+      AddLabel (LabelPlayer1Bonus, 505, 380, "0");
+      AddLabel (LabelPlayer2Bonus, 665, 380, "0");
+      AddLabel (LabelTotalScore, 300, 410, "Total Score");
+      AddLabel (LabelPlayer1Score, 505, 410, "0");
+      AddLabel (LabelPlayer2Score, 665, 410, "0");
     }
 
 //========================================================================================
@@ -282,7 +257,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
     }
 
 
-    // Convert score to string, or "-" when unscored (-1).
+    // Convert score to string, or "-" when unscored (score = -1).
     private string ScoreToString (int score)
     {
       if (score == -1)
@@ -385,9 +360,17 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
         CurrentDice.ClearDice ();
         UpdateStatus ();
         if (Game.Round < Rules.TotalRounds)
-          Roll.Enabled = true;
+          ButtonRoll.Enabled = true;
         else
-          Roll.Enabled = false;
+        {
+          ButtonRoll.Enabled = false;
+          string date = System.DateTime.Now.ToShortDateString () + " " +
+                        System.DateTime.Now.ToShortTimeString ();
+          HighScores.SubmitScore (FormInputPlayerNames.Player1Name,
+                                  Game.ScorePlayer1, date);
+          HighScores.SubmitScore (FormInputPlayerNames.Player2Name,
+                                  Game.ScorePlayer2, date);
+        }
       }
     }
 
@@ -418,7 +401,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
       ClearCategories ();
       UpdateScores ();
       CurrentDice.ClearDice ();
-      Roll.Enabled = true;
+      ButtonRoll.Enabled = true;
     }
 
 
@@ -470,7 +453,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
         EnableButtons ();
         UpdateStatus ();
         if (Game.RollsUsed == Rules.MaxRolls)
-          Roll.Enabled = false;
+          ButtonRoll.Enabled = false;
       }
     }
 
@@ -509,16 +492,16 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
     // Handler for button to show high scores.
     private void HighScoresClick (object sender, EventArgs e)
     {
-//      HighScoreDatabase.GetTopScores (3);
-      FormHighScores HighScores = new FormHighScores ();
       HighScores.LoadDatabase ();
       HighScores.ShowDialog ();
     }
   }
 
-  //========================================================================================
-  // Class DiceContainer
-  //========================================================================================
+
+//========================================================================================
+// Class DiceContainer
+//========================================================================================
+
 
   public class DiceContainer
   {
