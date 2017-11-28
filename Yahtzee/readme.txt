@@ -5,7 +5,7 @@ License: GNU General Public License 3.0 (https://www.gnu.org/licenses/gpl-3.0.en
 ==========================================================================================
 
 -- DESCRIPTION --
-A two player Yahtzee game.
+A two player Yahtzee game. High scores are stored in a database.
 
 
 -- GAMEPLAY --

@@ -32,7 +32,8 @@ namespace Yahtzee
     private Label LabelTotalScore = new Label ();
     private Label LabelPlayer1Score = new Label ();
     private Label LabelPlayer2Score = new Label ();
-    private Label LabelStatus;
+    private Label LabelStatus = new Label ();
+    private Label LabelWarning = new Label ();
     private DiceContainer CurrentDice;
     private Button ButtonRoll = new Button ();
     private Button ButtonRestart = new Button ();
@@ -121,7 +122,6 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
       ButtonHighScores.Click += HighScoresClick;
       Controls.Add (ButtonHighScores);
 
-      LabelStatus = new Label ();
       LabelStatus.Left = 25;
       LabelStatus.Top = 50;
       LabelStatus.Width = 200;
@@ -197,6 +197,9 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
       AddLabel (LabelTotalScore, 300, 410, "Total Score");
       AddLabel (LabelPlayer1Score, 505, 410, "0");
       AddLabel (LabelPlayer2Score, 665, 410, "0");
+      AddLabel (LabelWarning, 150, 187, "");
+      LabelWarning.ForeColor = Color.Red;
+      LabelWarning.Width = 200;
     }
 
 //========================================================================================
@@ -359,6 +362,7 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
         SetButtonPositions ();
         CurrentDice.ClearDice ();
         UpdateStatus ();
+        LabelWarning.Text = "";
         if (Game.Round < Rules.TotalRounds)
           ButtonRoll.Enabled = true;
         else
@@ -436,6 +440,16 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
     }
 
 
+    // Check if at least one die selected.
+    bool DiceSelected ()
+    {
+      foreach (bool b in SelectedDice)
+        if (b)
+          return true;
+      return false;
+    }
+
+
     // Handler for roll button.
     private void RollClick (object sender, EventArgs e)
     {
@@ -443,7 +457,18 @@ Make sure the images Die#.png and Die#Selected.png exist in the Data folder."
       if (Game.RollsUsed == 0)
         success = Game.FirstRoll ();
       else
-        success = Game.Reroll (GetSelectedDice ());
+      {
+        if (DiceSelected ())
+        {
+          success = Game.Reroll (GetSelectedDice ());
+          LabelWarning.Text = "";
+        }
+        else
+        {
+          success = false;
+          LabelWarning.Text = "Select at least one die.";
+        }
+      }
       if (success)
       {
         for (int i = 0; i < DiceSet.DiceCount; i++)
